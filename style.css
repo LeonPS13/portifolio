@@ -45,6 +45,11 @@ section {
     font-family: var(--font-code);
 }
 
+/* --- Alinhamento Justificado para a seção Sobre Mim --- */
+#sobre p {
+    text-align: justify;
+}
+
 /* --- CABEÇALHO --- */
 header {
     position: fixed;
