@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const roles = ["Desenvolvedor", "Engenheiro de Automação", "Entusiasta de Código"];
+    const roles = ["Área de Tecnologia", "Desenvolvimento de IA", "Criação de Automações", "Análise de Dados"];
     let roleIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
