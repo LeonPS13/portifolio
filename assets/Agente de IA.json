@@ -1,0 +1,811 @@
+{
+  "name": "Agente principal - Bruno",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.msg }}",
+        "options": {
+          "systemMessage": "=# Visão Geral\n\nVocê é o agente principal responsável por interpretar as solicitações do usuário e redirecioná-las para as ferramentas adequadas. Não execute ações diretamente — apenas encaminhe a solicitação corretamente formatada à ferramenta correta.\n\n---\n\n# Ferramentas Disponíveis\n\n- **Email Agent**: Para enviar, responder ou encaminhar e-mails. Sempre consulte o contactAgent antes de enviar.  \n- **Calendar Agent**: Para criar, editar ou excluir eventos de calendário. Use contactAgent para obter participantes.  \n- **Google Drive Agent**: Para criar, listar, mover, renomear ou excluir arquivos e pastas no Google Drive.  \n- **SerpAPI**: Para pesquisas na internet. Use apenas quando for claramente uma busca externa.  \n- **ClickUp Agent**: Para gerenciar tarefas e projetos.\n\n---\n\n# Regras Gerais\n\n1. **Nunca execute ações diretamente.** Sempre redirecione a tarefa para a ferramenta correspondente.\n2. **Sempre identifique claramente a intenção.**  \n   - Ações com arquivos ou pastas → Google Drive  \n   - Tarefas → ClickUp  \n   - E-mails → Email Agent  \n   - Eventos → Calendar Agent  \n   - Pesquisas externas (ex: notícias, tempo, definições) → SerpAPI\n3. **Use sempre parâmetros completos.** Exemplo:\n   - Correto: “Criar uma tarefa chamada ‘Relatório semanal’, prioridade alta, na lista ‘Projetos’.”\n   - Correto: “Listar arquivos dentro da pasta ‘Financeiro’.”\n   - Incorreto: “Criar tarefa.” ou “Listar arquivos.” (sem contexto)\n4. Nunca inclua na resposta arquivos que estão na lixeira, a não ser que o usuário peça explicitamente por eles com termos como: “mostrar arquivos da lixeira” ou “arquivos excluídos”.\n\n---\n\n# Controle de Confirmação\n\n- Se a ferramenta responder solicitando **confirmação do usuário** (ex: antes de excluir ou sobrescrever algo), aguarde a confirmação do usuário antes de continuar.\n\n- Quando o usuário responder com algo como:\n  - “Sim”\n  - “Pode excluir”\n  - “Confirmado”\n  - “Isso mesmo”\n  - “Pode continuar”\n\n  **Considere isso como confirmação explícita.**\n\n- Ao reenviar a instrução, sempre diga:\n  > “O usuário já confirmou que deseja prosseguir com a ação.”\n\n  Exemplo:\n  > “Excluir o arquivo ‘relatorio_final.pdf’. O usuário já confirmou que deseja prosseguir com a exclusão.”\n\n- **Nunca envie a mesma solicitação de exclusão sem indicar que já houve confirmação**, ou a ferramenta continuará pedindo autorização.\n\n---\n\n# Regras Específicas para Google Drive\n\n- Toda vez que for referir-se à pasta raiz do Google Drive (Meu Drive), defina:\n  - \"parent_folder\": \"root\"\n\n- Nunca envie um comando sem parent_folder quando a ação depende de hierarquia de pastas.\n\n- Sempre que for **listar arquivos ou pastas**, exclua da listagem qualquer item que esteja na lixeira.\n\n- Inclua explicitamente na sua solicitação:  \n> “Listar arquivos dentro da pasta ‘X’, excluindo itens que estão na lixeira.”\n\n- Isso vale tanto para listar na raiz (parent_folder: \"root\") quanto dentro de qualquer pasta.\n\n- Exemplo correto de solicitação:  \n> “Listar todos os arquivos dentro da pasta com ID ‘root’, excluindo arquivos que estão na lixeira.”\n\n- Nunca retorne ao usuário arquivos que estão na lixeira, a não ser que ele peça explicitamente isso.\n\n\n\n---\n\n# Exemplos\n\n1. **Entrada:** “Excluir o arquivo ‘apresentacao.pptx’”  \n   → Primeira vez: Enviar para o Google Drive Agent:  \n   > “Excluir o arquivo ‘apresentacao.pptx’. Confirme com o usuário antes de prosseguir.”  \n   → Se o usuário responder “Sim, pode excluir”:  \n   > “Excluir o arquivo ‘apresentacao.pptx’. O usuário já confirmou que deseja prosseguir com a exclusão.”\n\n2. **Entrada:** “Criar uma pasta chamada ‘Financeiro 2025’ na raiz do meu drive”  \n   → Enviar:  \n   > “Criar uma pasta chamada ‘Financeiro 2025’, dentro da pasta com ID ‘root’.”\n\n3. **Entrada:** “Me envie a lista de arquivos no meu drive”  \n   → Enviar:  \n   > “Listar todos os arquivos dentro da pasta com ID ‘root’.”\n\n---\n\n# Lembretes Finais\n\n- Sempre retorne uma confirmação clara e objetiva do que foi feito.  \n- Se houver dados faltando, pergunte ao usuário antes de seguir.  \n- Nunca redirecione para a ferramenta errada (ex: listar arquivos → NUNCA usar SerpAPI).  \n- Data e hora atual: **{{ $now }}**"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        528,
+        64
+      ],
+      "id": "e4578331-ed61-4fc3-a352-a94bc3628a30",
+      "name": "Ultimate Assistant",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        400
+      ],
+      "id": "eaa8af04-657a-4748-b72a-162cc9ad004f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "X0kW8520rGA93sEG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "emailAgent",
+        "description": "Call this tool for any email actions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "F4OoGuAE2sfWQuFx",
+          "mode": "list",
+          "cachedResultName": "Agente E-mail"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        384,
+        592
+      ],
+      "id": "e8dd0cf2-b857-4cdf-adfa-597cd1daa30c",
+      "name": "Email Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Campos iniciais').item.json.Instance }}",
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        512
+      ],
+      "id": "101f604f-1ea0-42c4-99a7-42a6f370554f",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        432
+      ],
+      "id": "c0c4fd8c-2552-4c69-ab29-0d7feccdb8da",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "name": "CalendarAgent",
+        "description": "Call this tool for any calendar action.",
+        "workflowId": {
+          "__rl": true,
+          "value": "cSl9WMiZVD5HXcxB",
+          "mode": "list",
+          "cachedResultName": "Agente Calendario"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        528,
+        608
+      ],
+      "id": "e17a9379-27fe-4dfb-8a6a-04ea1a33e06e",
+      "name": "Calendar Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "19fba06a-ea1e-4a71-92a1-d7c8caf2a4e2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2080,
+        48
+      ],
+      "id": "348c657d-1a4b-434f-98d9-e0b8c7267634",
+      "name": "Webhook",
+      "webhookId": "19fba06a-ea1e-4a71-92a1-d7c8caf2a4e2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "11363ad3-97a4-40af-9fba-9926fc095678",
+              "leftValue": "={{ $('Campos iniciais').item.json.msgType }}",
+              "rightValue": "audioMessage",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1104,
+        48
+      ],
+      "id": "124c4973-2898-4126-af9c-998b0d0f4f35",
+      "name": "Verificar se a mensagem é audio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "612e0bdb-3733-457b-854c-6bd2b36a4a8f",
+              "name": "base64",
+              "value": "={{ $('Campos iniciais').item.json.base64 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -864,
+        -80
+      ],
+      "id": "dc85ff2e-d85b-4eca-9eb7-82e5ffa4ad9b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {
+          "fileName": "audio.mp3",
+          "mimeType": "audio/mpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        -80
+      ],
+      "id": "2c0f6153-46eb-4f30-8365-06aa6b70bbb3",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -448,
+        -80
+      ],
+      "id": "c1948d38-dfdc-47f8-ae89-4d936f5ff71b",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "X0kW8520rGA93sEG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3b1e963-fdc4-4cc2-b3b7-20a0fa0a6c8c",
+              "name": "msg",
+              "value": "={{ $('Campos iniciais').item.json.msg }} {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        64
+      ],
+      "id": "964c9966-499e-4d9b-a11d-ef83cea11bad",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "# Verifica se o numero está autorizado a utilizar o agendador",
+        "height": 540,
+        "width": 960
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2144,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "c12046a0-2ab1-4e62-8e13-4fa04de69624",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Audio ou texto?",
+        "height": 420,
+        "width": 1120,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1136,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "bc271c4e-dd53-48a9-8d40-6c6907a8f3e5",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ab380a2-a8d3-421c-ab4e-748ea8fb7904",
+              "name": "response",
+              "value": "Unable to perform task. Please try again.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "98a1c3e7-41a4-4695-b2b1-da4893e6dee2",
+      "name": "Try Again",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1312,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39c2f302-03be-4464-a17a-d7cc481d6d44",
+              "name": "=response",
+              "value": "={{$json.output}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9dd75ddc-a74f-4dfb-b0c7-517bb940e8d9",
+      "name": "Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1312,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://evolution-api-evolution-api.uzzdjv.easypanel.host/message/sendText/{{ $('Webhook').item.json.body.instance }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Campos iniciais').item.json.numCliente }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.response }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        -64
+      ],
+      "id": "9d50869f-23cf-470e-8aff-5f850a6485d5",
+      "name": "HTTP Request - Enviar mensagem"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://evolution-api-evolution-api.uzzdjv.easypanel.host/message/sendText/{{ $('Webhook').item.json.body.instance }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Campos iniciais').item.json.numCliente }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.response }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        192
+      ],
+      "id": "c290a4f7-4581-4c8a-b624-b4b66a137049",
+      "name": "HTTP Request - Enviar mensagem1"
+    },
+    {
+      "parameters": {
+        "name": "ClickupAgent",
+        "description": "Call this tool for clickup tasks",
+        "workflowId": {
+          "__rl": true,
+          "value": "vu5Ax4qHDowhChdm",
+          "mode": "list",
+          "cachedResultName": "Agente ClickUP"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        688,
+        608
+      ],
+      "id": "fbaba711-cb14-4be0-83ef-a17d2224a5a5",
+      "name": "Clickup Agent"
+    },
+    {
+      "parameters": {
+        "name": "GoogleDriveAgent",
+        "description": "Call this tool to access Google Drive.",
+        "workflowId": {
+          "__rl": true,
+          "value": "rP5IWzPuTnWjog1D",
+          "mode": "list",
+          "cachedResultName": "Agente Google Drive"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        848,
+        592
+      ],
+      "id": "d4f4d97e-1ee6-4bae-8e4c-eb5b4ada6538",
+      "name": "Google Drive Agent"
+    },
+    {
+      "parameters": {
+        "content": "# O agente e sua resposta\n## Aqui o agente decide qual das ferramentas usar, executa a tarefa e envia uma confirmação\n",
+        "height": 900,
+        "width": 1760,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "24a9afe4-73df-4033-b399-575648608400",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        992,
+        544
+      ],
+      "id": "0a86f8be-5be2-401a-9d27-919bfa69f6b4",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "l1kBd0VPtQqT2yJw",
+          "name": "SerpAPI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "004d2c01-57f3-4172-bbab-438f8cc8e20d",
+              "name": "numCliente",
+              "value": "={{ $json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "c904d3fe-740f-4f10-8f4f-891b964b9c14",
+              "name": "numEmpresa",
+              "value": "={{ $json.body.sender }}",
+              "type": "string"
+            },
+            {
+              "id": "6608c23f-1aff-4744-8390-3385dcb5a6e4",
+              "name": "nomeCliente",
+              "value": "={{ $json.body.data.pushName }}",
+              "type": "string"
+            },
+            {
+              "id": "68170d46-4091-4603-9c3d-e2793be74a76",
+              "name": "Instance",
+              "value": "={{ $json.body.data.instanceId }}",
+              "type": "string"
+            },
+            {
+              "id": "a17c223d-f64a-404c-a8f1-436fb696c0ca",
+              "name": "msg",
+              "value": "={{ $json.body.data.message.conversation }}",
+              "type": "string"
+            },
+            {
+              "id": "c13d8bc2-c96f-4178-9f3e-fb3454affe45",
+              "name": "msgType",
+              "value": "={{ $json.body.data.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "bb6159e6-c042-45ab-a6f2-22225cd72827",
+              "name": "msgId",
+              "value": "={{ $json.body.data.key.id }}",
+              "type": "string"
+            },
+            {
+              "id": "2dd82746-fcfa-48dc-83de-21a103e31eb8",
+              "name": "base64",
+              "value": "={{ $json.body.data.message.base64 }}",
+              "type": "string"
+            },
+            {
+              "id": "ccd35c79-cf46-41cc-adae-8789bf533b05",
+              "name": "InstanceIDtelcliente",
+              "value": "={{ $json.body.data.instanceId }}{{ $json.body.data.key.remoteJid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1632,
+        48
+      ],
+      "id": "ffadafc4-9054-49bd-aa5c-4254a6460824",
+      "name": "Campos iniciais"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ultimate Assistant": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try Again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Campos iniciais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar se a mensagem é audio": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Try Again": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Enviar mensagem1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Enviar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clickup Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campos iniciais": {
+      "main": [
+        [
+          {
+            "node": "Verificar se a mensagem é audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "89cf3607-60f0-46b4-b9fe-c008bc606dfa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9cf5925e652d7333ef97429bdf8df6a7442d9560d3e7cebaed1fc8e4e5f6a19"
+  },
+  "id": "5fpAgeBrYbm74BnM",
+  "tags": [
+    {
+      "createdAt": "2025-05-14T01:47:41.772Z",
+      "updatedAt": "2025-05-14T01:47:41.772Z",
+      "id": "2EcOn3jC2iHxGGC0",
+      "name": "consultoria"
+    }
+  ]
+}
