@@ -259,3 +259,53 @@ footer {
         display: none; /* Em um próximo passo, podemos criar um menu "hambúrguer" aqui */
     }
 }
+
+/* --- Estilos para a Seção Sobre Mim (Opção 2) --- */
+.about-content {
+    display: flex;
+    align-items: flex-start; /* Alinha os itens no topo */
+    gap: 40px; /* Espaço entre a foto e o texto */
+    margin-top: 30px;
+}
+
+.about-image {
+    flex-basis: 30%; /* A imagem ocupará 30% do espaço */
+    min-width: 200px; /* Largura mínima para a imagem */
+}
+
+.about-image img {
+    width: 100%;
+    border-radius: 10px; /* Bordas arredondadas para a foto */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.about-text {
+    flex-basis: 70%; /* O texto ocupará 70% do espaço */
+}
+
+.about-text p {
+    text-align: justify;
+    margin-bottom: 1em; /* Espaçamento entre os parágrafos */
+    line-height: 1.6; /* Melhora a legibilidade */
+}
+
+.about-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* --- Ajuste para telas menores (celulares) --- */
+@media (max-width: 768px) {
+    .about-content {
+        flex-direction: column; /* Coloca a imagem em cima do texto */
+        align-items: center; /* Centraliza os itens */
+        gap: 30px;
+    }
+
+    .about-image {
+        max-width: 250px; /* Define um tamanho máximo para a foto no mobile */
+    }
+
+    .about-text p {
+        text-align: left; /* Justificado pode ficar ruim em telas pequenas */
+    }
+}
