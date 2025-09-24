@@ -223,44 +223,7 @@ nav ul li a:hover {
     margin-right: 5px;
 }
 
-/* --- RODAPÉ --- */
-footer {
-    background-color: var(--bg-light);
-    padding: 40px 0;
-    text-align: center;
-}
-
-.social-links a {
-    color: var(--text-secondary);
-    font-size: 1.8rem;
-    margin: 0 15px;
-    transition: color 0.3s ease;
-}
-
-.social-links a:hover {
-    color: var(--accent-color);
-}
-
-.copyright {
-    margin-top: 20px;
-    font-size: 0.9rem;
-    color: #666;
-}
-
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2.5rem;
-    }
-    .hero h2 {
-        font-size: 1.5rem;
-    }
-    nav ul {
-        display: none; /* Em um próximo passo, podemos criar um menu "hambúrguer" aqui */
-    }
-}
-
-/* --- Estilos para a Seção Sobre Mim (Opção 2) --- */
+/* --- Estilos para a Seção Sobre Mim --- */
 .about-content {
     display: flex;
     align-items: flex-start; /* Alinha os itens no topo */
@@ -293,25 +256,33 @@ footer {
     margin-bottom: 0;
 }
 
-/* --- Ajuste para telas menores (celulares) --- */
-@media (max-width: 768px) {
-    .about-content {
-        flex-direction: column; /* Coloca a imagem em cima do texto */
-        align-items: center; /* Centraliza os itens */
-        gap: 30px;
-    }
+/* --- RODAPÉ --- */
+footer {
+    background-color: var(--bg-light);
+    padding: 40px 0;
+    text-align: center;
+}
 
-    .about-image {
-        max-width: 250px; /* Define um tamanho máximo para a foto no mobile */
-    }
+.social-links a {
+    color: var(--text-secondary);
+    font-size: 1.8rem;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+}
 
-    .about-text p {
-        text-align: left; /* Justificado pode ficar ruim em telas pequenas */
-    }
+.social-links a:hover {
+    color: var(--accent-color);
+}
 
-    /* --- Estilos do Modal (Pop-up) --- */
+.copyright {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #666;
+}
 
-/* O fundo escurecido (overlay) */
+/* ===================================================
+   Estilos do Modal (Pop-up) - MOVIDO PARA CÁ
+   =================================================== */
 .modal {
   display: none; /* Escondido por padrão */
   position: fixed; /* Fica fixo na tela */
@@ -325,7 +296,6 @@ footer {
   backdrop-filter: blur(5px); /* Efeito de desfoque no fundo (opcional, moderno) */
 }
 
-/* A imagem dentro do modal */
 .modal-content {
   margin: auto;
   display: block;
@@ -341,7 +311,6 @@ footer {
   to {transform: scale(1)}
 }
 
-/* O botão de fechar (X) */
 .close-button {
   position: absolute;
   top: 20px;
@@ -358,4 +327,34 @@ footer {
   text-decoration: none;
   cursor: pointer;
 }
+
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    .hero h2 {
+        font-size: 1.5rem;
+    }
+    nav ul {
+        display: none; /* Em um próximo passo, podemos criar um menu "hambúrguer" aqui */
+    }
+
+    /* Ajuste para a seção "Sobre" em telas menores */
+    .about-content {
+        flex-direction: column; /* Coloca a imagem em cima do texto */
+        align-items: center; /* Centraliza os itens */
+        gap: 30px;
+    }
+
+    .about-image {
+        max-width: 250px; /* Define um tamanho máximo para a foto no mobile */
+    }
+
+    .about-text p {
+        text-align: left; /* Justificado pode ficar ruim em telas pequenas */
+    }
+
+    /* O CÓDIGO DO MODAL ESTAVA AQUI DENTRO, O QUE ERA INCORRETO */
 }
