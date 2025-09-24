@@ -36,4 +36,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     type();
+
+    // --- Lógica do Modal (Pop-up) de Imagens ---
+
+// Pega os elementos do modal no HTML
+const modal = document.getElementById("imageModal");
+const modalImg = document.getElementById("modalImage");
+const closeBtn = document.querySelector(".close-button");
+
+// Pega todos os links que devem abrir o modal
+const imageLinks = document.querySelectorAll(".open-modal");
+
+// Adiciona o evento de clique para cada link de imagem
+imageLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        event.preventDefault(); // Impede que o link abra em uma nova guia
+        modal.style.display = "block";
+        modalImg.src = this.href;
+    });
+});
+
+// Função para fechar o modal
+function closeModal() {
+    modal.style.display = "none";
+}
+
+// Fecha o modal ao clicar no botão (X)
+closeBtn.addEventListener('click', closeModal);
+
+// Fecha o modal ao clicar em qualquer lugar do fundo escuro
+window.addEventListener('click', function(event) {
+    if (event.target == modal) {
+        closeModal();
+    }
+});
 });
