@@ -4,9 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let charIndex = 0;
     let isDeleting = false;
     const typingElement = document.getElementById('tech-role');
-    const typingSpeed = 135;
-    const deletingSpeed = 85;
-    const delayBetweenRoles = 2000;
+    const typingSpeed = 120;
+    const deletingSpeed = 60;
+    const delayBetweenRoles = 1750;
 
     function type() {
         const currentRole = roles[roleIndex];
