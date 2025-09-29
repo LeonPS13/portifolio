@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let charIndex = 0;
     let isDeleting = false;
     const typingElement = document.getElementById('tech-role');
-    const typingSpeed = 160;
-    const deletingSpeed = 125;
+    const typingSpeed = 135;
+    const deletingSpeed = 85;
     const delayBetweenRoles = 2000;
 
     function type() {
