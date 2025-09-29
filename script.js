@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const roles = ["Área de Tecnologia", "Desenvolvimento de IA", "Criação de Automações", "Análise de Dados"];
+    const roles = ["Tecnologia da informação", "Desenvolvimento de sistemas de IA", "Automação de processos", "Análise de Dados", "Desenvolvimento de produtos digitais", "Infraestrutura em nuvem"];
     let roleIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
     const typingElement = document.getElementById('tech-role');
-    const typingSpeed = 150;
-    const deletingSpeed = 100;
+    const typingSpeed = 160;
+    const deletingSpeed = 125;
     const delayBetweenRoles = 2000;
 
     function type() {
